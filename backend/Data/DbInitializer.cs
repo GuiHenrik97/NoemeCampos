@@ -5,19 +5,28 @@ namespace NoemeCampos.Data;
 
 public static class DbInitializer
 {
+    private const string AdminEmail = "admin@noemecampos.com";
+    private const string AdminPassword = "Admin123";
+    private const string AdminRole = "Admin";
+
     public static async Task SeedAdminAsync(AppDbContext context)
     {
-        if (await context.Users.AnyAsync(u => u.Role == "Admin"))
-            return;
+        var admin = await context.Users
+            .FirstOrDefaultAsync(u => u.Email == AdminEmail);
 
-        var admin = new User
+        if (admin == null)
         {
-            Email = "admin@noemecampos.com",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123"),
-            Role = "Admin"
-        };
+            admin = new User
+            {
+                Email = AdminEmail
+            };
 
-        context.Users.Add(admin);
+            context.Users.Add(admin);
+        }
+
+        admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword);
+        admin.Role = AdminRole;
+
         await context.SaveChangesAsync();
     }
 }

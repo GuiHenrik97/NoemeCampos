@@ -10,6 +10,25 @@ namespace NoemeCampos.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Bancos novos nao possuem as tabelas legadas. Criamos stubs vazios para a migracao
+            // seguir sem erro, enquanto em bancos antigos o IF NOT EXISTS nao interfere.
+            migrationBuilder.Sql(@"
+                CREATE TABLE IF NOT EXISTS Professores (
+                    Id INTEGER NOT NULL PRIMARY KEY,
+                    Nome TEXT NOT NULL,
+                    CPF TEXT NOT NULL,
+                    Salario TEXT NOT NULL,
+                    Especialidade TEXT NOT NULL
+                );
+            ");
+
+            migrationBuilder.Sql(@"
+                CREATE TABLE IF NOT EXISTS ProfessorTurma (
+                    ProfessorId INTEGER NOT NULL,
+                    TurmaId INTEGER NOT NULL
+                );
+            ");
+
             // Migrar dados de Professor para Funcionario
             migrationBuilder.Sql(@"
                 INSERT INTO Funcionarios (Nome, CPF, Email, Telefone, DataAdmissao, Cargo, SalarioBase, TipoFuncionario, Ativo)
@@ -32,7 +51,7 @@ namespace NoemeCampos.Migrations
 
             // Criar registros em ProfessorInfo para os professores migrados
             migrationBuilder.Sql(@"
-                INSERT INTO ProfessorInfo (FuncionarioId, RegistroDocente, Especialidade, CargaHoraria)
+                INSERT INTO ProfessoresInfo (FuncionarioId, RegistroDocente, Especialidade, CargaHoraria)
                 SELECT
                     f.Id,
                     'REG-' || f.CPF as RegistroDocente,
@@ -42,13 +61,13 @@ namespace NoemeCampos.Migrations
                 INNER JOIN Professores p ON f.CPF = p.CPF
                 WHERE f.TipoFuncionario = 'Professor'
                 AND NOT EXISTS (
-                    SELECT 1 FROM ProfessorInfo pi WHERE pi.FuncionarioId = f.Id
+                    SELECT 1 FROM ProfessoresInfo pi WHERE pi.FuncionarioId = f.Id
                 )
             ");
 
             // Migrar relacionamentos ProfessorTurma para FuncionarioTurma
             migrationBuilder.Sql(@"
-                INSERT INTO FuncionarioTurma (FuncionarioId, TurmaId)
+                INSERT INTO FuncionarioTurmas (FuncionarioId, TurmaId)
                 SELECT
                     f.Id as FuncionarioId,
                     pt.TurmaId
@@ -56,7 +75,7 @@ namespace NoemeCampos.Migrations
                 INNER JOIN Professores p ON pt.ProfessorId = p.Id
                 INNER JOIN Funcionarios f ON f.CPF = p.CPF AND f.TipoFuncionario = 'Professor'
                 WHERE NOT EXISTS (
-                    SELECT 1 FROM FuncionarioTurma ft
+                    SELECT 1 FROM FuncionarioTurmas ft
                     WHERE ft.FuncionarioId = f.Id AND ft.TurmaId = pt.TurmaId
                 )
             ");
@@ -68,7 +87,7 @@ namespace NoemeCampos.Migrations
             // Reverter migração: deletar funcionarios que foram criados pela migração
             // ATENÇÃO: Isso só funciona se os dados não foram modificados após a migração
             migrationBuilder.Sql(@"
-                DELETE FROM FuncionarioTurma
+                DELETE FROM FuncionarioTurmas
                 WHERE FuncionarioId IN (
                     SELECT f.Id FROM Funcionarios f
                     INNER JOIN Professores p ON f.CPF = p.CPF
@@ -78,7 +97,7 @@ namespace NoemeCampos.Migrations
             ");
 
             migrationBuilder.Sql(@"
-                DELETE FROM ProfessorInfo
+                DELETE FROM ProfessoresInfo
                 WHERE FuncionarioId IN (
                     SELECT f.Id FROM Funcionarios f
                     INNER JOIN Professores p ON f.CPF = p.CPF

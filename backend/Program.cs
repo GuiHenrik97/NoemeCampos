@@ -6,14 +6,19 @@ using NoemeCampos.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔥 Faz o container escutar externamente na porta 5106
+// Faz o container escutar externamente na porta 5106
 builder.WebHost.UseUrls("http://0.0.0.0:5106");
 
-// Controllers
-builder.Services.AddControllers();
+// Controllers 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 // Resolve o caminho do banco de forma mais segura
 var dataDirectory = Path.Combine(Directory.GetCurrentDirectory(), "data");
@@ -62,7 +67,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // CORS
-var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',') ?? new[] { "http://localhost:5173" };
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',') 
+                     ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
@@ -93,6 +100,7 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.SeedAdminAsync(context);
 }
 
+// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -101,6 +109,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
+// Middleware global de erro
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseAuthentication();

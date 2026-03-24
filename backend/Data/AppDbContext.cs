@@ -12,8 +12,10 @@ public class AppDbContext : DbContext
 
     public DbSet<Aluno> Alunos { get; set; }
     public DbSet<Turma> Turmas { get; set; }
+    public DbSet<Professor> Professores { get; set; }
     public DbSet<Funcionario> Funcionarios { get; set; }
     public DbSet<ProfessorInfo> ProfessoresInfo { get; set; }
+    public DbSet<ProfessorTurma> ProfessorTurmas { get; set; }
     public DbSet<FuncionarioTurma> FuncionarioTurmas { get; set; }
     public DbSet<Endereco> Enderecos { get; set; }
     public DbSet<Responsavel> Responsaveis { get; set; }
@@ -34,6 +36,22 @@ public class AppDbContext : DbContext
             .HasOne(ft => ft.Turma)
             .WithMany(t => t.Funcionarios)
             .HasForeignKey(ft => ft.TurmaId);
+
+        modelBuilder.Entity<ProfessorTurma>()
+            .ToTable("ProfessorTurma");
+
+        modelBuilder.Entity<ProfessorTurma>()
+            .HasKey(pt => new { pt.ProfessorId, pt.TurmaId });
+
+        modelBuilder.Entity<ProfessorTurma>()
+            .HasOne(pt => pt.Professor)
+            .WithMany(p => p.Turmas)
+            .HasForeignKey(pt => pt.ProfessorId);
+
+        modelBuilder.Entity<ProfessorTurma>()
+            .HasOne(pt => pt.Turma)
+            .WithMany()
+            .HasForeignKey(pt => pt.TurmaId);
 
         modelBuilder.Entity<AlunoResponsavel>()
             .HasKey(ar => new { ar.AlunoId, ar.ResponsavelId });

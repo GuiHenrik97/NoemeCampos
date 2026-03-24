@@ -18,7 +18,15 @@ public class ProfessorService
 
     public async Task<PaginatedResult<ProfessorResponseDto>> GetAllAsync(QueryParameters parameters)
     {
-        var query = _repository.Query();
+        parameters.Page = parameters.Page <= 0 ? 1 : parameters.Page;
+        parameters.PageSize = parameters.PageSize <= 0 ? 10 : parameters.PageSize;
+
+        IQueryable<Professor> query = _repository.Query()
+            .Include(p => p.Turmas)
+            .ThenInclude(pt => pt.Turma);
+
+        if (!string.IsNullOrWhiteSpace(parameters.Nome))
+            query = query.Where(p => p.Nome.Contains(parameters.Nome));
 
         var totalItems = await query.CountAsync();
 
@@ -28,7 +36,13 @@ public class ProfessorService
             .Select(p => new ProfessorResponseDto
             {
                 Id = p.Id,
-                Nome = p.Nome
+                Nome = p.Nome,
+                CPF = p.CPF,
+                Especialidade = p.Especialidade,
+                Salario = p.Salario,
+                Turmas = p.Turmas
+                    .Select(pt => pt.Turma.Nome)
+                    .ToList()
             })
             .ToListAsync();
 
@@ -42,7 +56,10 @@ public class ProfessorService
 
     public async Task<ProfessorResponseDto> GetByIdAsync(int id)
     {
-        var professor = await _repository.GetByIdAsync(id);
+        var professor = await _repository.Query()
+            .Include(p => p.Turmas)
+            .ThenInclude(pt => pt.Turma)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         if (professor == null)
             throw new BusinessException("Professor não encontrado");
@@ -50,7 +67,13 @@ public class ProfessorService
         return new ProfessorResponseDto
         {
             Id = professor.Id,
-            Nome = professor.Nome
+            Nome = professor.Nome,
+            CPF = professor.CPF,
+            Especialidade = professor.Especialidade,
+            Salario = professor.Salario,
+            Turmas = professor.Turmas
+                .Select(pt => pt.Turma.Nome)
+                .ToList()
         };
     }
 
@@ -58,7 +81,10 @@ public class ProfessorService
     {
         var professor = new Professor
         {
-            Nome = dto.Nome
+            Nome = dto.Nome,
+            CPF = dto.CPF,
+            Especialidade = dto.Especialidade,
+            Salario = dto.Salario
         };
 
         await _repository.AddAsync(professor);
@@ -67,7 +93,11 @@ public class ProfessorService
         return new ProfessorResponseDto
         {
             Id = professor.Id,
-            Nome = professor.Nome
+            Nome = professor.Nome,
+            CPF = professor.CPF,
+            Especialidade = professor.Especialidade,
+            Salario = professor.Salario,
+            Turmas = new List<string>()
         };
     }
 
@@ -79,6 +109,9 @@ public class ProfessorService
             throw new BusinessException("Professor não encontrado");
 
         professor.Nome = dto.Nome;
+        professor.CPF = dto.CPF;
+        professor.Especialidade = dto.Especialidade;
+        professor.Salario = dto.Salario;
 
         _repository.Update(professor);
         await _repository.SaveAsync();

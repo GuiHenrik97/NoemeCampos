@@ -16,7 +16,13 @@ interface GetProfessoresParams {
 }
 
 export async function getProfessores(params: GetProfessoresParams) {
-    return api.get("/professor", { params })
+    return api.get("/professor", {
+        params: {
+            page: params.pageNumber,
+            pageSize: params.pageSize,
+            nome: params.nome,
+        },
+    })
 }
 
 export async function createProfessor(data: {
