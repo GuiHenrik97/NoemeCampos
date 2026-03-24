@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: noemecampos-backend
+    ports:
+      - "5106:5106"
+    volumes:
+      - noemecampos_db:/app/data
+      - ./backend/wwwroot:/app/wwwroot
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Jwt__Key=${JWT_SECRET_KEY:-SUA_CHAVE_SUPER_SECRETA_AQUI_123456789}
+      - AllowedOrigins=${ALLOWED_ORIGINS:-http://localhost:5173}
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: noemecampos-frontend
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_API_URL=http://localhost:5106/api
+    depends_on:
+      - backend
+
+volumes:
+  noemecampos_db:

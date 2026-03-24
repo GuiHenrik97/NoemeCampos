@@ -1,5 +1,33 @@
+# Build
 bin/
 obj/
+
+# Dependencies
+node_modules/
+
+# Package managers
 /packages/
+
+# IDE
+.idea/
+.vscode/
 riderModule.iml
+.DS_Store
+
+# ReSharper
 /_ReSharper.Caches/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Env
+.env
+.env.local
+
+# Config (cuidado aqui)
+appsettings.json
+appsettings.*.json
+!appsettings.Development.json
+!appsettings.example.json
