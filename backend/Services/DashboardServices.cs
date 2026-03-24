@@ -19,9 +19,7 @@ public class DashboardService
         {
             TotalAlunos = await _context.Alunos.CountAsync(),
             TotalTurmas = await _context.Turmas.CountAsync(),
-            TotalProfessores = await _context.Funcionarios
-                .Where(f => f.TipoFuncionario == "Professor")
-                .CountAsync()
+            TotalProfessores = await _context.Professores.CountAsync()
         };
     }
 }
