@@ -12,6 +12,22 @@ O projeto segue arquitetura em camadas, com separação clara entre controllers,
 
 ---
 
+## 📸 Interface
+
+### Login
+![Login](docs/images/login.png)
+
+### Dashboard
+![Dashboard](docs/images/dashboard.png)
+
+### Gestão de Alunos
+![Alunos](docs/images/alunos.png)
+
+### Detalhes
+![Detalhes](docs/images/modal.png)
+
+---
+
 ## Funcionalidades
 
 - Autenticação de usuários (login e registro)
@@ -84,6 +100,9 @@ Passos:
 docker-compose up --build
 
 Após isso, a aplicação estará disponível localmente.
+Acesse http://localhost:5173/ para visualizar.
+
+Backend: http://localhost:5106
 
 ---
 
